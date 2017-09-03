@@ -1,1 +1,7 @@
 # thesis
+
+## setup
+`
+    cmake .
+`
+' make'
