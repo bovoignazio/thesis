@@ -94,8 +94,8 @@ th::one_pass_(Algorithm alg, const unsigned n1, const unsigned n2, const double 
       return phi(f) > alpha;});
   auto min_freq = *begin(freq_rng);
 
-  auto freqs = alg(min_freq);
-  sort(freqs);
+  auto freqs = alg(min_freq); BOOST_ASSERT(size(freqs) > 0);
+
   auto map_ = view::zip(view::iota(1ul, size(freqs)), freqs)
     | view::adjacent_remove_if([](const auto& a, const auto& b){
 	return std::get<1>(a) == std::get<1>(b);});
@@ -114,8 +114,8 @@ th::lamp_dec_(Algorithm m, const unsigned n1, const unsigned n2, const double al
   auto freq_rng = view::iota(1u,n1) | view::reverse;
   auto phi = [=](const auto f){return th::min_p_(n1, n2, f);};
   auto pred = [=](const auto f){
-    std::cout << f << std::endl;
-    return m(f) * phi(f) > alpha;};
+    const auto m_ = m(f); BOOST_ASSERT(m > 0); // <-- very important!
+    return m_ * phi(f) > alpha;};
 
   return *find_if(freq_rng, pred) - 1;
 }
@@ -127,14 +127,14 @@ th::early_term_(Algorithm m_et, const unsigned n1, const unsigned n2, const doub
   auto phi = [=](const auto f){return th::min_p_(n1, n2, f);};
   auto pred = [=](const auto f){
     const auto pv = phi(f);
-    return m_et(f, pv) * pv <= alpha;
+    auto m =  m_et(f, pv); BOOST_ASSERT(m > 0); // <-- very important!
+    return m * pv <= alpha;
   };
 
-auto freq_rng = view::iota(1,n1)
-      | view::remove_if([=](const auto f){return phi(f) > alpha;});
- std::cout << *begin(freq_rng) << std::endl;
+  auto freq_rng = view::iota(1,n1)
+    | view::remove_if([=](const auto f){return phi(f) > alpha;});
 
-    return *find_if(freq_rng, pred);
+  return *find_if(freq_rng, pred);
 }
 
 template<typename Algorithm>
@@ -147,7 +147,8 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
   auto phi = [=](const auto f){return th::min_p_(n1, n2, f);};
   auto g = [=](const auto f){
     const auto pv = phi(f);
-    return m_et(f, pv) * pv - alpha;};
+    const auto m = m_et(f, pv); BOOST_ASSERT(m > 0); // <-- very important!
+    return m * pv - alpha;};
 
   auto freq_rng = view::iota(1u,n1)| view::remove_if([=](const auto f){
       return phi(f) > alpha;});
@@ -157,7 +158,6 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
     
   auto tol = [](const auto a, const auto b){
     return b - a <= 1;};
-
 
   auto res =  tools::bisect(g, min, max, tol);
   return std::floor(res.first);
