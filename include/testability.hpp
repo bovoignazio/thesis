@@ -168,7 +168,7 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
 
   // apply the bisection method and return freq_min 
   auto res =  tools::bisect(g, min, max, tol);
-  return std::round(res.second); 
+  return std::ceil(res.second); 
 }
 // }   
 
