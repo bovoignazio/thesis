@@ -129,6 +129,7 @@ th::early_term_(Algorithm m_et, const unsigned n1, const unsigned n2, const doub
   auto phi = [=](const auto f){return th::min_p_(n1, n2, f);};
   auto pred = [=](const auto f){
     const auto pv = phi(f);
+    std::cout << f << std::endl;
     auto m =  m_et(f, pv); BOOST_ASSERT(m > 0); // <-- very important!
     return m * pv <= alpha;
   }; // continue the meaning process until m * pv <= alpha is satisfied
@@ -167,8 +168,8 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
     return b - a <= 1;};
 
   // apply the bisection method and return freq_min 
-  auto res =  tools::bisect(g, min, max, tol);
-  return std::ceil(res.second); 
+  auto res = tools::bisect(g, min, max, tol);
+  return std::floor(res.first);
 }
 // }   
 

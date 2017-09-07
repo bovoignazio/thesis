@@ -72,20 +72,23 @@ int main (int argc, char **argv)
   using namespace std::placeholders;
   using namespace ranges;
 
-  auto alpha =  .00000005;
+  auto alpha =  .0000000005;
   
   auto alg = [&](const auto f){return gspan.run(f);};
   auto alg_m = [&](const auto f){return gspan.run(f).size();};
   auto c_alg_m = [&](const auto f, const auto pv){return gspan.c_run_m(f, pv, alpha);};
 
   //auto out = th::lamp_dec_(alg_m, n1, n2, alpha);
+  std::cout << "alpha: " << alpha << std::endl;
   auto out = th::bis_leap_(c_alg_m, n1, n2, alpha);
 
   //  std::cout << alg_m(24) << std::endl;
-  // auto out = th::early_term_(c_alg_m,n1, n2, alpha);
-  //auto app = th::one_pass_(alg,n1, n2, alpha);
-
+  //  auto out = th::early_term_(c_alg_m,n1, n2, alpha);
   std::cout << "OUT: " << out << std::endl;
+  auto app = th::one_pass_(alg,n1, n2, alpha);
+  std::cout << "APP: " << app << std::endl;
+
+
 
 
 }
