@@ -39,10 +39,31 @@ int main (int argc, char **argv)
   bool where = false;
   bool enc = false;
   bool directed = false;
+  auto n1 = 0u;
+  auto n2 = 0u;
 
-  std::ifstream input_f("input");
+  std::ifstream input_f("MUTAG");
+  std::string input_labels("MUTAG_label");
   std::ofstream output_f("output");
-	
+
+  {
+    std::ifstream input(input_labels);
+    if (!input) {
+      std::cerr << "class file problem" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    for (std::string line; std::getline(input,line);) {
+      if (line[0] == '1') 
+	++n1;
+      else if (line[0] == '0') 
+	++n2;
+      else 
+	std::cerr << "label file error" << std::endl;
+    }
+
+  }
+
   GSPAN::gSpan gspan(input_f, output_f, maxpat, minnodes, enc, where, directed);
   // auto res = gspan.run(minsup);
 	 
@@ -57,12 +78,14 @@ int main (int argc, char **argv)
   auto alg_m = [&](const auto f){return gspan.run(f).size();};
   auto c_alg_m = [&](const auto f, const auto pv){return gspan.c_run_m(f, pv, alpha);};
 
-  //  auto out = th::lamp_dec_(alg_m, 100, 240, alpha);
-  //  auto out = th::bis_leap_(c_alg_m, 100, 240, alpha);
-  // auto out = th::early_term_(c_alg_m,100, 240, alpha);
-  auto out = th::one_pass_(alg,100, 240, alpha);
+  //auto out = th::lamp_dec_(alg_m, n1, n2, alpha);
+  auto out = th::bis_leap_(c_alg_m, n1, n2, alpha);
 
-  std::cout << "ROOT: " << out << std::endl;
-  
+  //  std::cout << alg_m(24) << std::endl;
+  // auto out = th::early_term_(c_alg_m,n1, n2, alpha);
+  //auto app = th::one_pass_(alg,n1, n2, alpha);
+
+  std::cout << "OUT: " << out << std::endl;
+
 
 }

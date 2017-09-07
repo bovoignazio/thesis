@@ -57,7 +57,6 @@ namespace thesis
 
 } // namespace thesis
 
-
 /**************************************************************************************/
 
 namespace th = thesis;
@@ -95,6 +94,7 @@ th::one_pass_(Algorithm alg, const unsigned n1, const unsigned n2, const double 
   auto min_freq = *begin(freq_rng); // min. admissible frequency for mining at significance level: alpha
 
   auto freqs = alg(min_freq); BOOST_ASSERT(size(freqs) > 0); //run the mining algorithm
+  std::cout << "Freqs size: " << freqs.size() << std::endl;
   sort(freqs); // then sort (increasing order)
 
   auto map_ = view::zip(view::iota(1ul, size(freqs)), freqs)
@@ -115,7 +115,7 @@ th::lamp_dec_(Algorithm m, const unsigned n1, const unsigned n2, const double al
   auto freq_rng = view::iota(1u,n1) | view::reverse; // {n1, n1 - 1, ..., 1}
   auto phi = [=](const auto f){return th::min_p_(n1, n2, f);}; // minimum p-value function
   auto pred = [=](const auto f){
-    const auto m_ = m(f); BOOST_ASSERT(m > 0); // <-- very important!
+    const auto m_ = m(f); BOOST_ASSERT(m_ > 0); // <-- very important!
     return m_ * phi(f) > alpha;}; 
 
   // find the first value f for which m(f) * phi(f) <= alpha is satisfied and return it  
@@ -152,6 +152,7 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
   auto g = [=](const auto f){ // function whose root is to be found
     const auto pv = phi(f);
     const auto m = m_et(f, pv); BOOST_ASSERT(m > 0); // <-- very important!
+    std::cout << "freq: " << f << std::endl;
     return m * pv - alpha;};
 
   auto freq_rng = view::iota(1u,n1)| view::remove_if([=](const auto f){
@@ -167,7 +168,7 @@ th::bis_leap_(Algorithm m_et, const unsigned n1, const unsigned n2, const double
 
   // apply the bisection method and return freq_min 
   auto res =  tools::bisect(g, min, max, tol);
-  return std::floor(res.first); 
+  return std::round(res.second); 
 }
 // }   
 
