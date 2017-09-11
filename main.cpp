@@ -39,30 +39,12 @@ int main (int argc, char **argv)
   bool where = false;
   bool enc = false;
   bool directed = false;
-  auto n1 = 0u;
-  auto n2 = 0u;
 
-  std::ifstream input_f("MUTAG");
-  std::string input_labels("MUTAG_label");
+  std::string input_filename = "NCI1_10";
+
+  std::ifstream input_f(input_filename);
+  //  std::string input_labels("MUTAG_label");
   std::ofstream output_f("output");
-
-  {
-    std::ifstream input(input_labels);
-    if (!input) {
-      std::cerr << "class file problem" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-
-    for (std::string line; std::getline(input,line);) {
-      if (line[0] == '1') 
-	++n1;
-      else if (line[0] == '0') 
-	++n2;
-      else 
-	std::cerr << "label file error" << std::endl;
-    }
-
-  }
 
   GSPAN::gSpan gspan(input_f, output_f, maxpat, minnodes, enc, where, directed);
   // auto res = gspan.run(minsup);
@@ -72,22 +54,49 @@ int main (int argc, char **argv)
   using namespace std::placeholders;
   using namespace ranges;
 
-  auto alpha =  .0000000005;
+  auto alpha =  .05;
   
-  auto alg = [&](const auto f){return gspan.run(f);};
-  auto alg_m = [&](const auto f){return gspan.run(f).size();};
-  auto c_alg_m = [&](const auto f, const auto pv){return gspan.c_run_m(f, pv, alpha);};
+  auto to_run = [](auto f, auto gspan){return gspan.run(f);};
+  auto to_run_m = [=](auto f, auto pv, auto gspan){return gspan.c_run_m(f,pv,alpha);};
+  auto alg = [=](auto f){ return to_run(f,gspan);};
+  auto alg_m = [=](auto f){return alg(f).size();};
+  auto c_alg_m = [=](auto f, auto pv){return to_run_m(f,pv,gspan);};
 
-  //auto out = th::lamp_dec_(alg_m, n1, n2, alpha);
-  std::cout << "alpha: " << alpha << std::endl;
-  auto out = th::bis_leap_(c_alg_m, n1, n2, alpha);
+  auto n1 = 15u;
+  auto n2 = 44u;
 
-  //  std::cout << alg_m(24) << std::endl;
-  //  auto out = th::early_term_(c_alg_m,n1, n2, alpha);
-  std::cout << "OUT: " << out << std::endl;
-  auto app = th::one_pass_(alg,n1, n2, alpha);
-  std::cout << "APP: " << app << std::endl;
 
+  auto start = std::chrono::system_clock::now();  
+
+  auto out = th::one_pass_(alg, n1, n2, alpha);
+  //  std::cout << "alpha: " << alpha << std::endl;
+  //auto out = th::bis_leap_(c_alg_m, n1, n2, alpha);
+
+  //  auto app = th::one_pass_(alg,n1, n2, alpha);
+  //  std::cout << alg_m(14) << std::endl;
+  std::cout << "ROOT FREQ: " << out << std::endl;
+  out = th::early_term_(c_alg_m,n1, n2, alpha);
+
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff = end - start;
+  auto test_no = alg_m(out);
+
+  //  std::cout << "****************************************\n" << input_filename << std::endl;
+  std::cout << "ROOT FREQ: " << out << std::endl;
+  // std::cout << "#TESTABLES: " << test_no << std::endl;
+  // std::cout << "DELTA TAR: " << alpha / test_no << std::endl;
+  // std::cout << "TIME: " << diff.count() << std::endl;
+  // std::cout << "DELTA BONF: " << alpha / alg_m(1) << std::endl;
+
+  //std::cout << alg_m(14) << std::endl;
+
+  // std::cout << "CHECKING\n";
+  // std::cout << alg_m(out) << " | "  << alg_m(out+1) << " | " << alg_m(out+2) << std::endl
+    ;
+
+  //  std::cout << "alpha: " << alpha << std::endl;
+  
+  //  std::cout << "APP: " << app << std::endl;
 
 
 
